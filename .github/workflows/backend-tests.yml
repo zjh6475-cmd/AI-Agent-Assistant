@@ -14,6 +14,8 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+    DEEPSEEK_API_KEY: ci-placeholder
 
     defaults:
       run:
