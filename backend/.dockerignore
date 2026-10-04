@@ -1,0 +1,15 @@
+# 不把 Python 缓存和本地虚拟环境送进镜像构建上下文。
+__pycache__/
+*.py[cod]
+.pytest_cache/
+venv/
+.venv/
+
+# 密钥只能在容器运行时由环境变量提供，不能写入镜像。
+.env
+
+# 这些是本地或用户持久化数据，部署时会改由数据卷提供。
+*.db
+*.sqlite
+uploads/
+vector_db/

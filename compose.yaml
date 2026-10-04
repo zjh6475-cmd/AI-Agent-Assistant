@@ -1,0 +1,57 @@
+services:
+  backend:
+    image: ai-agent-backend:local
+
+    build:
+      context: ./backend
+
+    # 密钥仅在容器运行时读取，不写入镜像。
+    env_file:
+      - ./backend/.env
+
+    environment:
+      # 容器内所有持久化数据统一放入数据卷。
+      DATABASE_URL: sqlite:////app/data/chat.db
+      AGENT_CHECKPOINT_DB_PATH: /app/data/agent_checkpoints.sqlite
+      UPLOAD_DIR: /app/data/uploads
+      VECTOR_DB_DIR: /app/data/vector_db
+      HF_HOME: /app/model_cache/huggingface
+      SENTENCE_TRANSFORMERS_HOME: /app/model_cache/sentence_transformers
+
+    volumes:
+      - backend_data:/app/data
+      - model_cache:/app/model_cache
+
+    # 仅供 Docker 内部的 frontend/Nginx 访问，不再对宿主机公开 8000。
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/openapi.json')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+
+    restart: unless-stopped
+
+  frontend:
+    image: ai-agent-frontend:local
+
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api
+
+    # 唯一向宿主机公开的端口：Nginx 静态站点与 API 反向代理。
+    ports:
+      - "80:80"
+
+    # 等后端健康后再启动 Nginx。
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+volumes:
+  backend_data:
+  model_cache:
+  

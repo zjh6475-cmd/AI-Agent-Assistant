@@ -1,0 +1,36 @@
+#这些内容不应该提交到 Gi
+backend/.env
+backend/chat.db
+backend/uploads/
+backend/vector_db/
+backend/__pycache__/
+backend/.venv/
+venv/
+frontend/node_modules/
+frontend/dist/
+*.pyc
+
+# Local/generated evaluation artifacts
+/rag-*.json
+/review/
+/backend/evals/reports/
+/.pytest_cache/
+/backend/.pytest_cache/
+/backend/.pytest-tmp*/
+
+# Local runtime state and temporary test outputs
+*.db
+*.sqlite
+*.sqlite3
+**/.pytest-tmp*/
+**/reports/
+**/.pytest-temp*/
+
+
+**/.pytest-tmp*/
+**/.pytest-temp*/
+**/reports/
+*.db
+*.sqlite
+*.sqlite3
+/backend/evals/rag-retrieval-metrics-fixed.json
