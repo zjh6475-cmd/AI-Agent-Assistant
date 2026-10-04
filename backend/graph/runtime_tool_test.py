@@ -71,20 +71,16 @@ graph = builder.compile()
 # 4. 运行 Graph
 # =========================
 
-result = graph.invoke(
-    {
-        "messages": [
-            tool_call_message,
-        ]
-    },
-    context=AgentContext(
-        user_id=1,
-    ),
-)
+if __name__ == "__main__":
+    result = graph.invoke(
+        {
+            "messages": [
+                tool_call_message,
+            ]
+        },
+        context=AgentContext(
+            user_id=1,
+        ),
+    )
 
-
-# =========================
-# 5. 输出结果
-# =========================
-
-print(result)
+    print(result)
