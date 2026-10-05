@@ -1,3 +1,5 @@
+[![Backend tests](https://github.com/ZJH6475-CMD/AI-Agent-Assistant/actions/workflows/backend-tests.yml/badge.svg)](https://github.com/ZJH6475-CMD/AI-Agent-Assistant/actions/workflows/backend-tests.yml)
+
 # AI-Agent-Assistant
 
 一个基于 FastAPI、React、LangGraph、Chroma 与本地 Embedding 模型的 AI Agent 助手项目，支持用户登录、聊天会话、知识库文档上传、RAG 检索与 Agent 工具调用。
