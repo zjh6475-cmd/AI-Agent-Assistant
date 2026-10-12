@@ -4,6 +4,34 @@
 
 一个基于 FastAPI、React、LangGraph、Chroma 与本地 Embedding 模型的 AI Agent 助手项目，支持用户登录、聊天会话、知识库文档上传、RAG 检索与 Agent 工具调用。
 
+## 快速启动
+
+项目提供 Docker Compose 部署。首次启动前需要安装并启动 Docker Desktop；本地 Embedding 模型首次使用时需要下载模型文件。
+
+1. 复制环境变量模板：
+
+   ```powershell
+   Copy-Item backend/.env.example backend/.env
+   ```
+
+   打开 `backend/.env`，填入自己的 `DEEPSEEK_API_KEY`，并将 `JWT_SECRET_KEY` 替换成长随机值。不要提交 `backend/.env`。
+
+2. 在项目根目录启动：
+
+   ```powershell
+   docker compose up --build -d
+   ```
+
+3. 浏览器访问 `http://localhost`。Compose 只将前端 Nginx 的 80 端口映射到宿主机，后端 API 由 Nginx 在 Docker 网络内转发。
+
+停止服务但保留聊天记录、上传文档和向量库：
+
+```powershell
+docker compose down
+```
+
+`docker compose down -v` 会一并删除命名数据卷，可能永久删除这些业务数据。详细审核步骤见 [`review/README.md`](review/README.md)。
+
 ## 用人部门审核 Demo
 
 审核演示脚本、虚拟知识库文档和完整工作流说明位于 [`review/`](review/)。
@@ -64,6 +92,18 @@
 
 注意：`answer_pass_rate: 1.0` 只表示人工标记的回答状态与预期一致，不代表模型绝对不会产生任何无依据补充。例如 `rag-009` 回答中提到 `WMT 2014`，虽然明确说明这不是上传文档中的内容，但在 `allow_general_knowledge: false` 的严格标准下，应作为额外质量注意事项记录。
 
+### 模型调用边界与成本观察
+
+模型调用不是无限等待或无限生成，当前通过环境变量设置边界：
+
+- `LLM_TIMEOUT_SECONDS=90`：单次模型请求最长等待时间；
+- `LLM_MAX_RETRIES=2`：模型网络调用失败时的 SDK 重试次数；
+- `LLM_MAX_TOKENS=2048`：单次模型输出上限，只限制生成 Token，不限制输入 Token；
+- Agent 问题长度限制为 4000 个字符，避免异常长输入直接放大上下文成本；
+- 每次模型节点都会在执行步骤中记录 `input_tokens`、`output_tokens`、`total_tokens` 和 `model_ms`。
+
+工具调用另外有最多 3 次重试和指数退避，Agent 另外有最多 3 轮工具调用。模型或工具最终失败时，接口只返回面向用户的安全提示，原始异常写入后端日志，不暴露内部路径、提示词或密钥。
+
 
 说明：`run_rag_retrieval_eval` 中的 `rag-013` 仍可能失败，因为它只执行单次 `search_chunks`。真实前端 Agent 通过两次拆分检索成功解决了跨文档问题。
 
@@ -77,9 +117,9 @@
 3. 如何用指标证明优化有效。
 
 
-#### 当前检索质量基线
+#### 历史检索质量基线（距离阈值实验前）
 
-使用真实前端知识库中的 19 个检索 case、`k=3` 进行评测，当前基线如下：
+使用真实前端知识库中的 19 个检索 case、`k=3` 进行评测，该次历史基线如下：
 
 - `source_case_count = 8`：需要召回证据的 case 数量；
 - `source_recalled_cases = 5`；
@@ -97,7 +137,7 @@
 
 其中，`source_recall_at_k` 衡量目标来源是否全部被召回，`hit_at_1_rate` 衡量单一目标来源是否排在第一位。跨文档 case 只参与来源召回率，不参与 `hit_at_1_rate`，避免部分命中造成指标虚高。
 
-这组数据是当前版本的检索质量基线。后续引入 Rerank 或调整 Chunk、Embedding 参数时，需要重新运行同一批 case，并同时比较召回质量、排序质量和延迟。
+这组数据记录了距离阈值与 evidence anchor 优化前的一轮检索质量。后续引入 Rerank 或调整 Chunk、Embedding 参数时，需要重新运行同一批 case，并同时比较召回质量、排序质量和延迟；当前最终结果见文档末尾的“最终检索质量基线”。
 
 #### 为什么当前使用 Chroma + Embedding
 
@@ -189,7 +229,7 @@ Rerank 主要解决的是：
 - `rag-016`：严格拒答，证据检查通过；
 - `rag-003`：有证据回答，关键词和引用检查通过；
 - `rag-019`：权限拒答，通过；
-- 完整回归测试：`85 passed`。
+- 本地完整回归（2026-10-08）：`86 passed`。GitHub Actions 的结果以顶部徽章链接对应的提交记录为准。
 
 
 
@@ -224,7 +264,7 @@ hit_at_1 = false
 - `rag-001`：有证据回答，通过；
 - `rag-009`：证据不足拒答，通过；
 - `rag-013`：跨文档回答，通过；
-- 完整回归测试：`84 passed`。
+- 本地完整回归（2026-10-08）：`86 passed`。GitHub Actions 的结果以顶部徽章链接对应的提交记录为准。
 
 
 #### 最终检索质量基线

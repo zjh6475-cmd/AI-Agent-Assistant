@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "title": "AI-Agent-Assistant RAG 流程演示包",
+  "mode": "offline-replay",
+  "display_label": "基于真实评测与演示文档的流程回放，不调用在线模型",
+  "common_flow": [
+    "用户登录",
+    "上传文档",
+    "解析文本",
+    "文本切片",
+    "Embedding 向量化",
+    "写入 Chroma",
+    "用户提出问题",
+    "LangGraph 判断是否调用知识库工具",
+    "按 user_id 检索并过滤证据",
+    "有依据则回答并引用来源，无依据则拒答"
+  ],
+  "cases": [
+    {
+      "id": "rag-003-real-replay",
+      "record_status": "captured_from_existing_eval",
+      "title": "有证据：解释 Attention",
+      "question": "请根据我上传的 Transformer 文档，说明 Attention 的作用。",
+      "uploaded_documents": [
+        "Transformer核心原理详解.docx"
+      ],
+      "evidence_preview": [
+        "Attention 的作用是找到哪个词和当前词关系最大。",
+        "Attention 负责找到重点，Feed Forward 负责理解和处理重点。"
+      ],
+      "events": [
+        {
+          "type": "agent_graph",
+          "status": "running",
+          "message": "LangGraph 正在判断是否需要知识库工具"
+        },
+        {
+          "type": "model",
+          "status": "success",
+          "message": "模型决定调用知识库检索"
+        },
+        {
+          "type": "search_knowledge_base",
+          "status": "success",
+          "message": "知识库检索完成，找到 3 个相关片段"
+        },
+        {
+          "type": "evidence_guard",
+          "status": "success",
+          "message": "证据校验通过，回答可以引用来源"
+        },
+        {
+          "type": "answer",
+          "status": "success",
+          "message": "已生成带来源的流式回答"
+        }
+      ],
+      "answer": "根据上传文档，Attention 的作用是判断句子中哪个词与当前词的关系最大，从而找到重点并理解词之间的关系。",
+      "sources": [
+        {
+          "source_id": "document-1-chunk-1",
+          "filename": "Transformer核心原理详解.docx",
+          "chunk_index": 1
+        },
+        {
+          "source_id": "document-1-chunk-2",
+          "filename": "Transformer核心原理详解.docx",
+          "chunk_index": 2
+        }
+      ],
+      "metrics": {
+        "retrieved_chunks": 3,
+        "total_tokens": 4513,
+        "answer_ms": 19682,
+        "source_case": "rag-003"
+      },
+      "technical_notes": [
+        "普通聊天和 Agent 聊天分开，只有 Agent 模式才进入 LangGraph。",
+        "检索结果会经过距离阈值和证据锚点校验。",
+        "SSE 将 token、步骤和来源分别发送给前端。"
+      ]
+    },
+    {
+      "id": "rag-reimburse-answer",
+      "record_status": "prepared_from_demo_document",
+      "title": "有证据：回答报销制度问题",
+      "question": "根据我上传的公司报销制度，差旅住宿每天的上限是多少？需要提供什么材料？",
+      "uploaded_documents": [
+        "公司报销制度-演示版.txt"
+      ],
+      "evidence_preview": [
+        "一线城市住宿费用上限为每人每天 450 元。",
+        "其他城市住宿费用上限为每人每天 300 元。",
+        "住宿报销必须提供正规发票和住宿订单或入住凭证。"
+      ],
+      "events": [
+        {
+          "type": "upload",
+          "status": "success",
+          "message": "公司报销制度-演示版.txt 上传成功"
+        },
+        {
+          "type": "parse",
+          "status": "success",
+          "message": "文本解析完成并生成切片"
+        },
+        {
+          "type": "embedding",
+          "status": "success",
+          "message": "切片已向量化并写入 Chroma"
+        },
+        {
+          "type": "search_knowledge_base",
+          "status": "success",
+          "message": "检索到住宿标准和报销材料相关片段"
+        },
+        {
+          "type": "evidence_guard",
+          "status": "success",
+          "message": "回答中的金额和材料要求均能在文档中找到"
+        },
+        {
+          "type": "answer",
+          "status": "success",
+          "message": "已返回带来源的回答"
+        }
+      ],
+      "answer": "根据上传的《公司报销制度-演示版.txt》：一线城市住宿上限为每人每天 450 元，其他城市为每人每天 300 元。住宿报销需要提供正规发票，以及住宿订单或入住凭证。",
+      "sources": [
+        {
+          "source_id": "demo-policy-section-2",
+          "filename": "公司报销制度-演示版.txt",
+          "section": "二、住宿标准"
+        }
+      ],
+      "metrics": {
+        "retrieved_chunks": 2,
+        "total_tokens": null,
+        "answer_ms": null,
+        "source_case": "review/demo_data/公司报销制度-演示版.txt"
+      },
+      "technical_notes": [
+        "回答中的金额、城市范围和材料要求都来自上传文档。",
+        "来源卡片让审核人员可以区分文档事实和模型常识。",
+        "该案例用于展示‘问题确实能在文档中找到答案’。"
+      ]
+    },
+    {
+      "id": "rag-reimburse-abstain",
+      "record_status": "prepared_from_demo_document",
+      "title": "无证据：拒绝编造预算数据",
+      "question": "根据我上传的公司报销制度，公司下一年度的总预算是多少？",
+      "uploaded_documents": [
+        "公司报销制度-演示版.txt"
+      ],
+      "evidence_preview": [
+        "文档包含住宿、交通、餐饮和报销材料要求。",
+        "文档没有公司下一年度总预算。"
+      ],
+      "events": [
+        {
+          "type": "search_knowledge_base",
+          "status": "success",
+          "message": "检索到报销制度内容，但没有找到预算金额"
+        },
+        {
+          "type": "evidence_guard",
+          "status": "success",
+          "message": "证据不足，阻止回答文档未提供的事实"
+        },
+        {
+          "type": "answer",
+          "status": "abstained",
+          "message": "已明确拒答，不补充通用知识或猜测"
+        }
+      ],
+      "answer": "当前上传的公司报销制度只说明住宿、交通、餐饮和报销材料要求，没有提供公司下一年度总预算，因此无法根据该文档回答。",
+      "sources": [
+        {
+          "source_id": "demo-policy-no-budget",
+          "filename": "公司报销制度-演示版.txt",
+          "section": "文档范围"
+        }
+      ],
+      "metrics": {
+        "retrieved_chunks": 0,
+        "total_tokens": null,
+        "answer_ms": null,
+        "source_case": "review/demo_data/公司报销制度-演示版.txt"
+      },
+      "technical_notes": [
+        "相似主题的检索结果不等于问题事实存在。",
+        "证据锚点校验失败时，系统选择拒答而不是猜测。",
+        "这是展示 RAG 防幻觉能力的关键案例。"
+      ]
+    }
+  ],
+  "replay_policy": {
+    "live_model_call": false,
+    "live_upload": false,
+    "live_vector_search": false,
+    "display_label": "流程回放，不产生新的 API Token 消耗"
+  }
+}

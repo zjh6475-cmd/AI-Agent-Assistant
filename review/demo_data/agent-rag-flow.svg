@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #0f172a; }
+      .label { font: 600 17px Arial, sans-serif; fill: #0f172a; }
+      .small { font: 14px Arial, sans-serif; fill: #475569; }
+      .box { stroke: #cbd5e1; stroke-width: 2; rx: 14; }
+      .line { stroke: #64748b; stroke-width: 3; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1280" height="720" fill="#f8fafc"/>
+  <text x="640" y="54" text-anchor="middle" class="title">AI-Agent-Assistant：从上传文档到有依据回答</text>
+
+  <rect x="50" y="105" width="210" height="100" class="box" fill="#dbeafe"/>
+  <text x="155" y="145" text-anchor="middle" class="label">1. 上传文档</text>
+  <text x="155" y="175" text-anchor="middle" class="small">PDF / DOCX / TXT</text>
+
+  <rect x="315" y="105" width="210" height="100" class="box" fill="#dcfce7"/>
+  <text x="420" y="145" text-anchor="middle" class="label">2. 解析与切片</text>
+  <text x="420" y="175" text-anchor="middle" class="small">保留来源和 chunk</text>
+
+  <rect x="580" y="105" width="210" height="100" class="box" fill="#fef3c7"/>
+  <text x="685" y="145" text-anchor="middle" class="label">3. 向量化</text>
+  <text x="685" y="175" text-anchor="middle" class="small">Embedding → Chroma</text>
+
+  <rect x="845" y="105" width="210" height="100" class="box" fill="#fce7f3"/>
+  <text x="950" y="145" text-anchor="middle" class="label">4. 用户提问</text>
+  <text x="950" y="175" text-anchor="middle" class="small">问题必须有文档范围</text>
+
+  <line x1="260" y1="155" x2="315" y2="155" class="line"/>
+  <line x1="525" y1="155" x2="580" y2="155" class="line"/>
+  <line x1="790" y1="155" x2="845" y2="155" class="line"/>
+
+  <rect x="180" y="310" width="250" height="120" class="box" fill="#ede9fe"/>
+  <text x="305" y="350" text-anchor="middle" class="label">LangGraph</text>
+  <text x="305" y="380" text-anchor="middle" class="small">判断是否调用知识库工具</text>
+  <text x="305" y="402" text-anchor="middle" class="small">记录步骤并限制重试</text>
+
+  <rect x="515" y="310" width="250" height="120" class="box" fill="#e0f2fe"/>
+  <text x="640" y="350" text-anchor="middle" class="label">按 user_id 检索</text>
+  <text x="640" y="380" text-anchor="middle" class="small">距离阈值过滤</text>
+  <text x="640" y="402" text-anchor="middle" class="small">防止跨用户读取文档</text>
+
+  <rect x="850" y="310" width="250" height="120" class="box" fill="#ffedd5"/>
+  <text x="975" y="350" text-anchor="middle" class="label">证据校验</text>
+  <text x="975" y="380" text-anchor="middle" class="small">有证据：回答 + 来源</text>
+  <text x="975" y="402" text-anchor="middle" class="small">无证据：明确拒答</text>
+
+  <line x1="950" y1="205" x2="305" y2="310" class="line"/>
+  <line x1="430" y1="370" x2="515" y2="370" class="line"/>
+  <line x1="765" y1="370" x2="850" y2="370" class="line"/>
+
+  <rect x="250" y="530" width="780" height="100" class="box" fill="#0f172a"/>
+  <text x="640" y="570" text-anchor="middle" style="font:700 20px Arial,sans-serif;fill:#fff">SSE 流式返回</text>
+  <text x="640" y="602" text-anchor="middle" style="font:14px Arial,sans-serif;fill:#cbd5e1">session → step → token → sources → done</text>
+  <line x1="975" y1="430" x2="820" y2="530" class="line"/>
+  <line x1="640" y1="430" x2="640" y2="530" class="line"/>
+</svg>

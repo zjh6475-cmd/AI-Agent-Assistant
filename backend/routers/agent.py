@@ -3,7 +3,7 @@ from fastapi.security import (
     HTTPBearer,
     HTTPAuthorizationCredentials
 )
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi.responses import StreamingResponse
 from services.agent_stream_service import agent_service_stream
 from auth import get_user_id
@@ -19,7 +19,11 @@ security = HTTPBearer()
 
 
 class AgentRequest(BaseModel):
-    message: str
+    message: str = Field(
+        min_length=1,
+        max_length=4000,
+        description="本轮问题，最多 4000 个字符",
+    )
     session_id: int | None = None
 
 
@@ -66,4 +70,4 @@ def agent_chat_stream(
             "Cache-Control": "no-cache",
             "Connection": "keep-alive"
         }
-    )    
+    )

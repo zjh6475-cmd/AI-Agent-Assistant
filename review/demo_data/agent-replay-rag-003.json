@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "replay_id": "agent-rag-003",
+  "title": "Agent 知识库问答流程回放",
+  "description": "基于一次真实 SSE 评测结果整理的脱敏回放数据；播放时不会调用模型。",
+  "source_case": "rag-003",
+  "transport": "http_sse",
+  "endpoint": "/agent/chat/stream",
+  "input": {
+    "question": "请根据我上传的 Transformer 文档，说明 Attention 的作用。",
+    "document": {
+      "filename": "Transformer核心原理详解.docx",
+      "file_type": "docx"
+    }
+  },
+  "events": [
+    {
+      "type": "upload",
+      "status": "success",
+      "message": "文档上传成功"
+    },
+    {
+      "type": "parse",
+      "status": "success",
+      "message": "文档解析完成，已生成文本切片"
+    },
+    {
+      "type": "embedding",
+      "status": "success",
+      "message": "文本已向量化并写入 Chroma"
+    },
+    {
+      "type": "agent_graph",
+      "status": "running",
+      "message": "LangGraph 正在判断是否需要知识库工具"
+    },
+    {
+      "type": "model",
+      "status": "success",
+      "message": "模型决定调用知识库检索"
+    },
+    {
+      "type": "search_knowledge_base",
+      "status": "success",
+      "message": "知识库检索完成，找到 3 个相关片段"
+    },
+    {
+      "type": "evidence_guard",
+      "status": "success",
+      "message": "证据校验通过，回答必须引用来源"
+    },
+    {
+      "type": "answer",
+      "status": "success",
+      "message": "已生成带来源的流式回答"
+    }
+  ],
+  "result": {
+    "answer": "根据上传文档，Attention 的作用是判断句子中哪个词与当前词的关系最大，从而找到重点并理解词之间的关系。",
+    "sources": [
+      {
+        "source_id": "document-1-chunk-1",
+        "filename": "Transformer核心原理详解.docx",
+        "chunk_index": 1
+      },
+      {
+        "source_id": "document-1-chunk-2",
+        "filename": "Transformer核心原理详解.docx",
+        "chunk_index": 2
+      }
+    ]
+  },
+  "metrics": {
+    "retrieved_chunks": 3,
+    "total_tokens": 4513,
+    "answer_ms": 19682,
+    "event_counts": {
+      "session": 1,
+      "step": 5,
+      "token": 315,
+      "sources": 1,
+      "done": 1
+    }
+  },
+  "replay_policy": {
+    "live_model_call": false,
+    "live_upload": false,
+    "display_label": "真实运行结果回放"
+  }
+}

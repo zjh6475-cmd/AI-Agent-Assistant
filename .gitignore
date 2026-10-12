@@ -12,7 +12,6 @@ frontend/dist/
 
 # Local/generated evaluation artifacts
 /rag-*.json
-/review/
 /backend/evals/reports/
 /.pytest_cache/
 /backend/.pytest_cache/
